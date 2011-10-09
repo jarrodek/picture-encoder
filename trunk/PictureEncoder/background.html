@@ -4,129 +4,130 @@
         <title>BG</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
         <script type="text/javascript">
-            var prevNotyfication = null;
-            //context menus
-            var contextProperties = {
-                title: 'Encode image',
-                contexts: ['image'],
-                onclick: function(info, tab){
-                    if( info.mediaType != "image" ){
-                        return;
+//context menus
+var contextProperties = {
+    title: 'Encode image',
+    contexts: ['image'],
+    onclick: function(info, tab){
+        if( info.mediaType != "image" ){
+            return;
+        }
+
+        var url = info.srcUrl;
+        var viewTabUrl = chrome.extension.getURL('index.html#image/' + encodeURIComponent(url) );
+        chrome.tabs.create({url: viewTabUrl});
+    }
+}
+chrome.contextMenus.create(contextProperties);
+var contextProperties2 = {
+    title: 'Encode all images',
+    contexts: ['page'],
+    onclick: function(info, tab){
+        encodePage(info,tab);
+    }
+}
+chrome.contextMenus.create(contextProperties2);
+function createUUID(){
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+        return v.toString(16);
+    });
+}
+
+var pagesCache = {};
+function encodePage(pageInfo,tab){
+    var hash = createUUID();
+    var viewTabUrl = chrome.extension.getURL('pageparser.html#'+hash);
+    chrome.tabs.create({
+        url: viewTabUrl
+    }, function(selfTab){
+        pagesCache[hash] = {pageUrl:pageInfo.pageUrl,tab:tab,selfId:selfTab.id};
+    });
+}
+
+function addEvents(){
+    var body = document.body;
+    body.addEventListener('image.downloaded', imageDownloaded, true);
+    body.addEventListener('image.error', imageDownloadError, true);
+}
+
+function removeEvents(){
+    var body = document.body;
+    body.removeEventListener('image.downloaded', imageDownloaded, true);
+    body.removeEventListener('image.error', imageDownloadError, true)
+}           
+chrome.extension.onRequest.addListener(
+function(request, sender, sendResponse) {
+    
+    if(!request.payload){
+        sendResponse({'error':'no payload'});
+        return;
+    }
+    
+    switch(request.payload){
+        case 'parser.getdata':
+            var hash = request.hash;
+            if(!hash){
+                sendResponse({'error':'Unknown page hash'});
+                return;
+            }
+            if( pagesCache.hasOwnProperty(hash) ){
+                var data = pagesCache[hash];
+                //delete pagesCache[hash];
+                var tab = data.tab;
+                getImagesFromTab(tab.id,tab,data.pageUrl,sendResponse);
+            } else {
+                sendResponse({'error':'Unknown page'});
+            }
+        break;
+        case 'parser.reparse':
+            var requestURL = request.url;
+            chrome.tabs.getAllInWindow(sender.tab.windowId, function(tabs){
+                var len = tabs.length;
+                var tab = null;
+                for(var i = 0; i< len; i++){
+                    if(tabs[i].url==requestURL){
+                        tab = tabs[i];
+                        break;
                     }
-                    
-                    closeLatestNotyfication();
-                    
-                    var url = info.srcUrl;
-                    
-                    prevNotyfication = webkitNotifications.createNotification(
-                        url, 'Processing image', 'please wait....'
-                    );
-                    prevNotyfication.onclose = function(){
-                        prevNotyfication = null;
-                    }
-                    prevNotyfication.show();
-                    
-                    processImage(url);
                 }
-            }
-            chrome.contextMenus.create(contextProperties);
-            
-            function closeLatestNotyfication(){
-                if( prevNotyfication != null ){
-                    prevNotyfication.cancel();
-                    prevNotyfication = null;
+                if( tab ){
+                    getImagesFromTab(tab.id,tab,tab.url,sendResponse);
+                } else {
+                    chrome.tabs.create({
+                        windowId:sender.tab.windowId,
+                        url: requestURL,
+                        selected: false
+                    }, function(newTab){
+                        awaiting[newTab.id] = {tab:null,url:requestURL,callback:sendResponse};
+                    });
                 }
-            }
-            
-            function processImage(url){
-                
-                var _period = url.lastIndexOf('.');
-                var ext = url.substr(_period+1);
-                var xhr = new XMLHttpRequest();
-                xhr.open('GET', url, true);
-                
-                xhr.overrideMimeType('image/'+ext+'; charset=x-user-defined');
-                xhr.responseType = 'arraybuffer';
-                
-                xhr.asBlob = true;
-                xhr.addEventListener('load', function(){
-                    
-                    var blob = new WebKitBlobBuilder();
-                    blob.append(xhr.response);
-                    var file = blob.getBlob('image/'+ext);
-                    
-                    var worker = new Worker('js/pictureencoder.js');
-                    worker.onmessage = function (event) {
-                        var data = event.data;
-                        if( data.result ){//finished
-                            closeLatestNotyfication();
-                            var hash = createUUID();
-                            var viewTabUrl = chrome.extension.getURL('index.html#'+hash);
-                            chrome.tabs.create({
-                                url: viewTabUrl
-                            }, function(tab){
-                                var views = chrome.extension.getViews();
-                                for (var i = 0; i < views.length; i++) {
-                                    var view = views[i];
-                                    if(view.location.hash == '#'+hash){
-                                        view.appendExternalResult(data.result);
-                                    }
-                                }
-                            });
-                            
-                        } else if( data.error ){    
-                            closeLatestNotyfication();
-                            prevNotyfication = webkitNotifications.createNotification(
-                                url, 'Error processing image', 'Can not process this image :(' 
-                            );
-                            prevNotyfication.onclose = function(){
-                                prevNotyfication = null;
-                            }
-                            prevNotyfication.show();
-                        } else {
-                            ///
-                        }
-                    };
-                    worker.postMessage(file);
-                    
-                    
-                    
-//                    var reader = new FileReader();
-//                    reader.onload = (function(theFile) {
-//                        return function(e) {
-//                            // Render thumbnail.
-//                            var span = document.createElement('span');
-//                            span.innerHTML = ['<img class="thumb" src="', e.target.result,
-//                                '" title="', theFile.name, '"/>'].join('');
-//                            closeLatestNotyfication();
-//                            
-//                            
-//                        };
-//                    })(f);
-//                    
-//                    reader.onerror =  function(e) {
-//                        closeLatestNotyfication();
-//                        prevNotyfication = webkitNotifications.createNotification(
-//                            url, 'Error processing image', 'Can not process this image :(' 
-//                        );
-//                        prevNotyfication.onclose = function(){
-//                            prevNotyfication = null;
-//                        }
-//                        prevNotyfication.show();
-//                    };
-//                    reader.readAsDataURL(f);
-                }, false);
-                xhr.send();
-            }
-            
-            function createUUID(){
-                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                    var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
-                    return v.toString(16);
-                });
-            }
-            
+            });
+        break;
+        default:
+            sendResponse({'error':'Unknown payload'});
+    }
+});
+function getImagesFromTab(tabId, tabObject, pageUrl,sendResponse){
+    chrome.tabs.sendRequest(tabId, {payload: "images.getall"}, function(response) {
+        if(!response){
+            sendResponse({'error':chrome.extension.lastError});
+            return;
+        }
+        sendResponse({data:response.data,tab:tabObject,pageUrl:pageUrl});
+    });
+}
+var awaiting = {};
+chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+    if(changeInfo.status&&changeInfo.status=='complete'){
+        if( awaiting.hasOwnProperty(tabId) ){
+            var passData = awaiting[tabId];
+            delete awaiting[tabId];
+            getImagesFromTab(tabId,tab,passData.url,passData.callback);
+        }
+    }
+});
         </script>
     </head>
-    <body></body>
+    <body onload="addEvents();" onunload="removeEvents();"></body>
 </html>
