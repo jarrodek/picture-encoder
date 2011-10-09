@@ -1,10 +1,46 @@
-Object.prototype.bind = function(context){
-    var slice = Array.prototype.slice;
-    var __method = this, args = slice.call(arguments, 1);
-    return function() {
-        var a = merge(args, arguments);
-        return __method.apply(context, a);
+var worker = new Worker('js/pictureencoder.js');
+function runOnLoad(){
+    var hash = document.location.hash;
+    if(hash){
+        hash = hash.substr(1);
+    } else {
+        return;
     }
+    if(hash.indexOf('image/')===0){
+        var imgUrl = decodeURIComponent( hash.substr(6) );
+        if(!imgUrl){
+            return;
+        }
+        parseImageFromUrl(imgUrl);
+    }
+}
+
+function parseImageFromUrl(src){
+    getImageData(src, {
+        success: function(blob){
+            worker.onmessage = function (event) {
+                var data = event.data;
+                if( data.result ){//finished
+                    appendExternalResult(data.result);
+                } else if( data.error ){
+                    webkitNotifications.createNotification(
+                        src, 'Error processing image', 'Can not process this image :(' 
+                    );
+                } else {
+                    webkitNotifications.createNotification(
+                        src, 'Error processing image', 'Unknown error occured :(' 
+                    );
+                }
+            }
+            worker.postMessage(blob);
+        },
+        error: function(){
+            webkitNotifications.createNotification(
+                src, 'Error processing image', 'Unknown error occured :(' 
+            );
+        }
+    });
+    
 }
 
 function createResultElement(data){
@@ -73,7 +109,7 @@ FileFormHandler.prototype = {
         li.classList.add('process');
         var file = this.fileList.shift();
         var context = this;
-        var worker = new Worker('js/pictureencoder.js');
+        
         worker.onmessage = function (event) {
             var data = event.data;
             if( data.result ){//finished
