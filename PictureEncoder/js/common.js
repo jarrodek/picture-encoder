@@ -1,6 +1,19 @@
 BlobBuilder = window.MozBlobBuilder || window.WebKitBlobBuilder || window.BlobBuilder;
+
 Function.prototype.bind = function(context){
     var slice = Array.prototype.slice;
+    
+    function merge(array, args) {
+        array = slice.call(array, 0);
+        return update(array, args);
+    }
+    function update(array, args) {
+        var arrayLength = array.length, length = args.length;
+        while (length--) array[arrayLength + length] = args[length];
+        return array;
+    }
+    
+    
     var __method = this, args = slice.call(arguments, 1);
     return function() {
         var a = merge(args, arguments);
