@@ -1,6 +1,6 @@
 {
     "name": "Picture Encoder",
-    "version": "0.2.1",
+    "version": "0.2.4",
     "description": "Encode images to base64 string and replace static filest on your website.",
     "app": {
         "launch": {
