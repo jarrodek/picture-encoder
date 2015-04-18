@@ -1,0 +1,1 @@
+Picture encoder helps You replace static image files to base64 string representation.
