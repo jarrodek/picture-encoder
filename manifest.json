@@ -1,0 +1,12 @@
+{
+  "name": "Image to base64",
+  "manifest_version": 2,
+  "version": "0.1",
+  "description": "Replaces all images on the page with base64 dataUrl representation. It helps you pass CORS restrictions while developing a webpage.",
+  "background": {
+    "persistent": false,
+    "scripts": ["background.js"]
+  },
+  "permissions": ["<all_urls>", "contextMenus", "tabs"],
+  "author": "Pawel Psztyc"
+}
