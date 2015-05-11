@@ -16,6 +16,10 @@ gdg.dev.img64.contextOptions = [{
   'parentId': 'BNaDGmcInC5gUrj6KRVYDwrd79aVW9jl',
   'title': 'Replace all images',
   'contexts': ['image']
+},{
+  'id': 'cwNDODJvp0NDSkjgpMz78QwB4GEZpLJH',
+  'title': 'All images to base64',
+  'contexts': ['page']
 }];
 
 gdg.dev.img64.initialize = function(){
@@ -32,6 +36,9 @@ gdg.dev.img64.initialize = function(){
 gdg.dev.img64.contextCallback = function(info, tab){
   var action;
   switch(info.menuItemId){
+    case gdg.dev.img64.contextOptions[3].id:
+      action = 'all-on-page';
+      break;
     case gdg.dev.img64.contextOptions[2].id:
       action = 'all';
       break;
@@ -79,11 +86,18 @@ gdg.dev.img64.onMessage = function(message, sender, sendResponse){
       gdg.dev.img64.runQueue(message.srcs, sender.tab.id);
       //return true; //keep port opened.
       return false;
+    case 'encode-page':
+      gdg.dev.img64.encodePage(message.data);
+      return false;
   }
   
   console.log('Inside background page', message, sender);
   return false;
 };
+
+
+
+
 
 
 gdg.dev.img64.queue = [];
@@ -95,7 +109,6 @@ gdg.dev.img64.runQueue = function(sources, tabid){
     'items': sources,
     'results': []
   });
-  
   if(gdg.dev.img64.running) return;
   gdg.dev.img64._run();
 };
@@ -113,24 +126,26 @@ gdg.dev.img64._run = function(){
   var item = gdg.dev.img64._tmpQueue.items.shift();
   
   if(!item){ //no more items
-    gdg.dev.img64.reportCS(gdg.dev.img64._tmpQueue);
+    if(gdg.dev.img64._tmpQueue.id.indexOf('page') !== -1){
+      gdg.dev.img64.reportPage(gdg.dev.img64._tmpQueue);
+    } else {
+      gdg.dev.img64.reportCS(gdg.dev.img64._tmpQueue);
+    }
     gdg.dev.img64._tmpQueue = null;
     window.setTimeout(gdg.dev.img64._run, 0);
     return;
   }
   
-  
-  
   gdg.dev.img64.getImageData(item).then(function(result){
     gdg.dev.img64._tmpQueue.results.push({
-      'src': item.src,
-      'data': result
+      'data': result,
+      'item': item
     });
     window.setTimeout(gdg.dev.img64._run, 0);
   }, function(cause){
     gdg.dev.img64._tmpQueue.results.push({
-      'src': item.src,
-      'error': cause.message
+      'error': cause.message,
+      'item': item
     });
     window.setTimeout(gdg.dev.img64._run, 0);
   });
@@ -143,6 +158,10 @@ gdg.dev.img64.reportCS = function(data){
     'data': data.results
   };
   chrome.tabs.sendMessage(data.id, cmd);
+};
+gdg.dev.img64.reportPage = function(data){
+  var id = data.id.substr(5);
+  console.log(data);
 };
 
 
@@ -211,6 +230,17 @@ gdg.dev.img64._getImageData = function(res){
     
   });
 };
+
+gdg.dev.img64.encodePage = function(data){
+  //
+  chrome.tabs.create({
+    'url': 'encoded.html#initialize'
+  }, function(tab){
+    gdg.dev.img64.runQueue(data.images, 'page/images/'+tab.id);
+    gdg.dev.img64.runQueue(data.cssImages, 'page/css/'+tab.id);
+  });
+};
+
 
 
 gdg.dev.img64.initialize();
