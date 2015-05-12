@@ -95,62 +95,30 @@ gdg.dev.img64.onMessage = function(message, sender, sendResponse){
   return false;
 };
 
-
-
-
-
-
-gdg.dev.img64.queue = [];
-gdg.dev.img64._tmpQueue = null;
-gdg.dev.img64.running = false;
+gdg.dev.img64.imageWorker = null;
 gdg.dev.img64.runQueue = function(sources, tabid){
-  gdg.dev.img64.queue.push({
-    'id': tabid,
-    'items': sources,
-    'results': []
+  if(gdg.dev.img64.imageWorker === null){
+    gdg.dev.img64.imageWorker = new Worker('pictureencoder.js');
+  }
+  gdg.dev.img64.imageWorker.onmessage = function (event) {
+    var result = event.data;
+    console.log(result);
+    if(result.id.indexOf('page') !== -1){
+      gdg.dev.img64.reportPage(result);
+    } else {
+      gdg.dev.img64.reportCS(result);
+    }
+  };
+  gdg.dev.img64.imageWorker.onerror = function(cause){
+    gdg.dev.img64.reportError(cause.message, tabid);
+  };
+  
+  gdg.dev.img64.imageWorker.postMessage({
+    'sources': sources,
+    'tabid': tabid
   });
-  if(gdg.dev.img64.running) return;
-  gdg.dev.img64._run();
 };
 
-gdg.dev.img64._run = function(){
-  gdg.dev.img64.running = true;
-  if(!gdg.dev.img64._tmpQueue){
-    gdg.dev.img64._tmpQueue = gdg.dev.img64.queue.shift();
-  }
-  if(!gdg.dev.img64._tmpQueue){
-    gdg.dev.img64.running = false;
-    return;
-  }
-  
-  var item = gdg.dev.img64._tmpQueue.items.shift();
-  
-  if(!item){ //no more items
-    if(gdg.dev.img64._tmpQueue.id.indexOf('page') !== -1){
-      gdg.dev.img64.reportPage(gdg.dev.img64._tmpQueue);
-    } else {
-      gdg.dev.img64.reportCS(gdg.dev.img64._tmpQueue);
-    }
-    gdg.dev.img64._tmpQueue = null;
-    window.setTimeout(gdg.dev.img64._run, 0);
-    return;
-  }
-  
-  gdg.dev.img64.getImageData(item).then(function(result){
-    gdg.dev.img64._tmpQueue.results.push({
-      'data': result,
-      'item': item
-    });
-    window.setTimeout(gdg.dev.img64._run, 0);
-  }, function(cause){
-    gdg.dev.img64._tmpQueue.results.push({
-      'error': cause.message,
-      'item': item
-    });
-    window.setTimeout(gdg.dev.img64._run, 0);
-  });
-  
-};
 
 gdg.dev.img64.reportCS = function(data){
   var cmd = {
@@ -161,74 +129,34 @@ gdg.dev.img64.reportCS = function(data){
 };
 gdg.dev.img64.reportPage = function(data){
   var id = data.id.substr(5);
-  console.log(data);
-};
-
-
-/**
- * 1. Download the image via xhr.
- * 2. Read it's content type and set mime
- * 3. Read file data
- */
-gdg.dev.img64.getImageData = function(item){
-  
-  return gdg.dev.img64._downloadImage(item)
-    .then(function(xhr){
-      return {
-        'mime': gdg.dev.img64._getImageMime(xhr),
-        'xhr': xhr
-      };
-    })
-    .then(gdg.dev.img64._getImageData);
-};
-
-gdg.dev.img64._downloadImage = function(item){
-  return new Promise(function(resolve, reject){
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', item.src, true);
-    xhr.responseType = 'arraybuffer';
-    xhr.addEventListener('load', function(e){
-      resolve(e.target);
-    });
-    xhr.addEventListener('error', function(e){
-      reject(e);
-    });
-    xhr.send();
-  });
-};
-
-
-
-gdg.dev.img64._getImageMime = function(req){
-  var contentType = 'image/png';
-  var headers = req.getAllResponseHeaders().split('\n');
-  if( headers && headers.length > 0 ){
-    var len = headers.length;
-    for(var i = 0; i<len; i++){
-      var header = headers[i];
-      if(!header) continue;
-      if(header.toLowerCase().indexOf('content-type')===0){
-        contentType = header.toLowerCase().substr(14).trim();
-        break;
-      }
-    }
+  var tabid, type;
+  if(id.indexOf('images/') === 0){
+    tabid = id.substr(7);
+    type = 'images';
+  } else if (id.indexOf('css/') === 0){
+    tabid = id.substr(4);
+    type = 'css';
+  } else {
+    //error
+    console.error("Unknow data to process", data);
+    return;
   }
-  return contentType;
+  
+  var cmd = {
+    'action': 'fill',
+    'result': data,
+    'type': type
+  };
+  chrome.tabs.sendMessage(tabid, cmd);
+  console.log(tabid, data);
 };
 
-gdg.dev.img64._getImageData = function(res){
-  return new Promise(function(resolve, reject){
-    
-    var worker = new Worker('pictureencoder.js');
-    worker.onmessage = function (event) {
-      resolve(event.data.result);
-    };
-    worker.postMessage({
-      'data': res.xhr.response,
-      'mime': res.mime
-    });
-    
-  });
+gdg.dev.img64.reportError = function(message, tabid){
+  var cmd = {
+    'action': 'error',
+    'message': message
+  };
+  chrome.tabs.sendMessage(data.id, cmd);
 };
 
 gdg.dev.img64.encodePage = function(data){
@@ -236,8 +164,10 @@ gdg.dev.img64.encodePage = function(data){
   chrome.tabs.create({
     'url': 'encoded.html#initialize'
   }, function(tab){
-    gdg.dev.img64.runQueue(data.images, 'page/images/'+tab.id);
-    gdg.dev.img64.runQueue(data.cssImages, 'page/css/'+tab.id);
+    window.setTimeout(function(){
+      gdg.dev.img64.runQueue(data.images, 'page/images/'+tab.id);
+      gdg.dev.img64.runQueue(data.cssImages, 'page/css/'+tab.id);
+    }, 0);
   });
 };
 

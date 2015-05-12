@@ -190,6 +190,12 @@ gdg.dev.img64.replaceData = function(rpl){
   var lenj = imgs.length;
   
   for(var i=0, len=rpl.data.length; i<len; i++){
+    if(rpl.data[i].error){
+      
+      //TODO??
+      continue;
+    }
+    
     var orygSrc = rpl.data[i].item.src;
     var dataUrl = rpl.data[i].data;
     
