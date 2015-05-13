@@ -141,6 +141,12 @@ gdg.dev.img64.reportPage = function(data){
     console.error("Unknow data to process", data);
     return;
   }
+  try{
+    tabid = parseInt(tabid);
+  }catch(e){
+    console.error(e);
+    return;
+  }
   
   var cmd = {
     'action': 'fill',
@@ -148,7 +154,6 @@ gdg.dev.img64.reportPage = function(data){
     'type': type
   };
   chrome.tabs.sendMessage(tabid, cmd);
-  console.log(tabid, data);
 };
 
 gdg.dev.img64.reportError = function(message, tabid){

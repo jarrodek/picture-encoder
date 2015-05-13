@@ -12,10 +12,30 @@
       <h1>Images to base64</h1>
     </header>
     <div id="loading">
+      <span class="ldn">loading...</span>
       <div class="spinner">
         <div class="cube1"></div>
         <div class="cube2"></div>
       </div>
     </div>
+    <section id="images">
+      <h2>Images</h2>
+    </section>
+    <section id="css">
+      <h2>CSS images</h2>
+    </section>
     <script src="encoded.js"></script>
+    <template id="item">
+      <div class="item">
+        <div class="image">
+          <img class="prev-image">
+        </div>
+        <div class="meta">
+          <span class="data"></span>
+          <span class="img"></span>
+          <span class="css"></span>
+        </div>
+      </div>
+    </template>
   </body>
+</html>

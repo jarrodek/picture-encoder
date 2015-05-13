@@ -108,11 +108,21 @@ gdg.dev.img64.replaceAllPage = function(message){
   //find all images in the page
   for(var i = 0, len = document.images.length; i<len; i++){
       var item = document.images[i];
+      
+      var attr = [];
+      for(var j=0,l=item.attributes.length;j<l;j++){
+        if(item.attributes[j].name === 'src') continue; //don't need this
+        attr[attr.length] = {
+          'name': item.attributes[j].name,
+          'value': item.attributes[j].value
+        };
+      }
+      
       var img = {
-        src: item.src,
-        width: item.width,
-        height: item.height,
-        attr: item.attributes
+        'src': item.src,
+        'width': item.width,
+        'height': item.height,
+        'attr': attr
       };
       images[images.length] = img;
   }
