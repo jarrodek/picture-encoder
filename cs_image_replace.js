@@ -109,6 +109,12 @@ gdg.dev.img64.replaceAllPage = function(message){
   for(var i = 0, len = document.images.length; i<len; i++){
       var item = document.images[i];
       
+      var rawsrc = item.getAttribute('src');
+      if(rawsrc === "" || rawsrc.indexOf('data:') === 0) {
+        continue;
+      }
+      
+      
       var attr = [];
       for(var j=0,l=item.attributes.length;j<l;j++){
         if(item.attributes[j].name === 'src') continue; //don't need this
@@ -223,5 +229,19 @@ gdg.dev.img64.replaceData = function(rpl){
 gdg.dev.img64._isTarget = function(message){
   return window.location.href === message.url;
 };
+
+
+
+
+/*TOAST:  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  background-color: rgba(0,0,0,0.80);
+  color: #fff;
+  padding: 12px 24px;
+  transition: bottom 0.35s ease-in-out;
+  font-size: 16px;
+  font-weight: 300;
+  font-family: sans-serif;*/
 
 gdg.dev.img64.initialize();

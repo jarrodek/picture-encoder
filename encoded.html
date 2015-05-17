@@ -18,22 +18,25 @@
         <div class="cube2"></div>
       </div>
     </div>
-    <section id="images">
-      <h2>Images</h2>
-    </section>
-    <section id="css">
-      <h2>CSS images</h2>
-    </section>
+    <div layout vertical class="main-container">
+      <section id="images" layout vertical>
+        <h2>Images</h2>
+      </section>
+      <section id="css" layout vertical>
+        <h2>CSS images</h2>
+      </section>
+    </div>
+    
     <script src="encoded.js"></script>
     <template id="item">
-      <div class="item">
+      <div class="item" layout horizontal>
         <div class="image">
           <img class="prev-image">
         </div>
-        <div class="meta">
-          <span class="data"></span>
-          <span class="img"></span>
-          <span class="css"></span>
+        <div class="meta" flex vertical layout>
+          <span class="data" selectable></span>
+          <span class="img" selectable></span>
+          <span class="css" selectable></span>
         </div>
       </div>
     </template>

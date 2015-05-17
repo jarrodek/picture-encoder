@@ -50,18 +50,23 @@ gdg.dev.img64.contextCallback = function(info, tab){
   gdg.dev.img64.replaceImages(info, tab, action);
 };
 
-
+gdg.dev.img64.workingScripts = [];
 gdg.dev.img64.replaceImages = function(info, tab, action){
-  chrome.tabs.executeScript(tab.id, {file: "cs_image_replace.js"}, function(){
-    var cmd = {
-      'action': action,
-      'src': info.srcUrl,
-      'url': info.pageUrl,
-      'frame': info.frameUrl
-    };
-    
+  var cmd = {
+    'action': action,
+    'src': info.srcUrl,
+    'url': info.pageUrl,
+    'frame': info.frameUrl
+  };
+  
+  if(gdg.dev.img64.workingScripts.indexOf(tab.id) !== -1){
     chrome.tabs.sendMessage(tab.id, cmd);
-  });
+  } else {
+    chrome.tabs.executeScript(tab.id, {file: "cs_image_replace.js"}, function(){
+      gdg.dev.img64.workingScripts.push(tab.id);
+      chrome.tabs.sendMessage(tab.id, cmd);
+    });
+  }
 };
 
 
@@ -91,7 +96,6 @@ gdg.dev.img64.onMessage = function(message, sender, sendResponse){
       return false;
   }
   
-  console.log('Inside background page', message, sender);
   return false;
 };
 
@@ -102,8 +106,7 @@ gdg.dev.img64.runQueue = function(sources, tabid){
   }
   gdg.dev.img64.imageWorker.onmessage = function (event) {
     var result = event.data;
-    console.log(result);
-    if(result.id.indexOf('page') !== -1){
+    if(result.id.indexOf && result.id.indexOf('page') !== -1){
       gdg.dev.img64.reportPage(result);
     } else {
       gdg.dev.img64.reportCS(result);
