@@ -47,7 +47,6 @@ gdg.dev.img64.insertImages = function(arr){
   var template = document.querySelector('#item');
   var fragment = document.createDocumentFragment();
   
-  
   for(var i=0,len=arr.length; i<len; i++){
     var item = arr[i].item;
     var data = arr[i].data;
