@@ -1,3 +1,5 @@
+/* global chrome */
+
 var gdg = gdg || {};
 gdg.dev = gdg.dev || {};
 gdg.dev.img64 = gdg.dev.img64 || {};
@@ -62,6 +64,8 @@ gdg.dev.img64.replaceSingle = function(message){
  * and will send it to background page for futher processing.
  * 
  * Processed images will replace original ones.
+ * 
+ * @param {Object} message
  */
 gdg.dev.img64.replaceAll = function(message){
   if(!message.src || !gdg.dev.img64._isTarget(message)){
@@ -174,7 +178,7 @@ gdg.dev.img64.parseCssRules = function(rules){
         src = value.substring(4,value.length-1);
       } else if(rule.style[_key] === 'width'){
         width = rule.style.getPropertyValue('width');
-      } else if( rule.style[_key] == 'height' ){
+      } else if( rule.style[_key] === 'height' ){
         height = rule.style.getPropertyValue('height');
       }
       if(src !== null && width !== null && height !== null){

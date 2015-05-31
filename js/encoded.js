@@ -1,3 +1,5 @@
+/* global chrome */
+
 var gdg = gdg || {};
 gdg.dev = gdg.dev || {};
 gdg.dev.img64 = gdg.dev.img64 || {};
@@ -39,7 +41,6 @@ gdg.dev.img64.removeLoader = function(){
   loading.parentNode.removeChild(loading);
   document.body.classList.remove('loading');
 };
-
 
 gdg.dev.img64.insertImages = function(arr){
   gdg.dev.img64.removeLoader();

@@ -1,3 +1,5 @@
+/* global chrome */
+
 var gdg = gdg || {};
 gdg.dev = gdg.dev || {};
 gdg.dev.img64 = gdg.dev.img64 || {};
@@ -62,7 +64,7 @@ gdg.dev.img64.replaceImages = function(info, tab, action){
   if(gdg.dev.img64.workingScripts.indexOf(tab.id) !== -1){
     chrome.tabs.sendMessage(tab.id, cmd);
   } else {
-    chrome.tabs.executeScript(tab.id, {file: "cs_image_replace.js"}, function(){
+    chrome.tabs.executeScript(tab.id, {file: "js/cs_image_replace.js"}, function(){
       gdg.dev.img64.workingScripts.push(tab.id);
       chrome.tabs.sendMessage(tab.id, cmd);
     });
@@ -102,7 +104,7 @@ gdg.dev.img64.onMessage = function(message, sender, sendResponse){
 gdg.dev.img64.imageWorker = null;
 gdg.dev.img64.runQueue = function(sources, tabid){
   if(gdg.dev.img64.imageWorker === null){
-    gdg.dev.img64.imageWorker = new Worker('pictureencoder.js');
+    gdg.dev.img64.imageWorker = new Worker('js/pictureencoder.js');
   }
   gdg.dev.img64.imageWorker.onmessage = function (event) {
     var result = event.data;
@@ -164,7 +166,7 @@ gdg.dev.img64.reportError = function(message, tabid){
     'action': 'error',
     'message': message
   };
-  chrome.tabs.sendMessage(data.id, cmd);
+  chrome.tabs.sendMessage(tabid, cmd);
 };
 
 gdg.dev.img64.encodePage = function(data){
