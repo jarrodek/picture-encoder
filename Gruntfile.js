@@ -15,36 +15,44 @@ module.exports = function (grunt) {
                 files: [
                     {
                         expand: true,
-                        src: ['_locales/**','assets/*.png', 'css/**', 'js/**', '*.html', 'manifest.json'],
+                        src: ['_locales/**', 'assets/*.png', 'css/**', 'js/**', '*.html', 'manifest.json'],
                         dest: './'
                     }
                 ]
+            }
+        },
+        clean: {
+            js: {
+                src: ["*.zip"]
             }
         }
     });
 
     grunt.loadNpmTasks('grunt-contrib-compress');
     grunt.loadNpmTasks('grunt-contrib-jshint');
-    
-    grunt.registerTask('default', ['compress']);
+    grunt.loadNpmTasks('grunt-contrib-clean');
+
+    grunt.registerTask('compress', ['compress']);
     grunt.registerTask('js-hint', ['jshint']);
-    
+
     grunt.registerTask('build-extension', ['manifest-version', 'compress']);
-    
-    grunt.registerTask('manifest-version', 'Increment manifest file version.', function(){
+
+    grunt.registerTask('manifest-version', 'Increment manifest file version.', function () {
         grunt.config.requires('manifest.version');
         var version = grunt.config.get('manifest.version');
-        var lastPart = version.substr(version.lastIndexOf('.')+1);
-        var number = parseInt(lastPart, 10)+1;
-        version = version.substr(0,version.lastIndexOf('.')) + '.' + number;
+        var lastPart = version.substr(version.lastIndexOf('.') + 1);
+        var number = parseInt(lastPart, 10) + 1;
+        version = version.substr(0, version.lastIndexOf('.')) + '.' + number;
         grunt.log.writeln('Changing version to: ', version);
-        
+
         grunt.config.set('manifest.version', version);
         grunt.config.set('pkg.version', version);
-        
+
         grunt.file.write('manifest.json', JSON.stringify(grunt.config.getRaw('manifest')));
         grunt.file.write('package.json', JSON.stringify(grunt.config.getRaw('pkg')));
-        
+
         grunt.log.writeln('New version updated.');
     });
+
+    grunt.registerTask('clean', ['clean']);
 };

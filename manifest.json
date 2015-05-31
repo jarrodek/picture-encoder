@@ -4,7 +4,7 @@
     "description": "__MSG_extensionDescription__",
     "author": "Pawel Psztyc <jarrodek@gmail.com>",
     "manifest_version": 2,
-    "version": "1.0.1",
+    "version": "1.0.2",
     "background": {
         "persistent": false,
         "scripts": [
@@ -16,5 +16,10 @@
         "contextMenus",
         "tabs"
     ],
+    "icons": {
+        "16": "assets/icon_16.png",
+        "48": "assets/icon_48.png",
+        "128": "assets/icon_128.png"
+    },
     "default_locale": "en"
 }
