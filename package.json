@@ -1,0 +1,13 @@
+{
+    "name": "picture-encoder",
+    "description": "An extension for Google Chrome to replace / encode images from a web page to base 64.",
+    "version": "1.0.1",
+    "devDependencies": {
+        "grunt": "^0.4.5",
+        "grunt-contrib-compress": "^0.13.0",
+        "grunt-contrib-jshint": "^0.11.2"
+    },
+    "dependencies": {
+        "archiver": "^0.14.4"
+    }
+}
