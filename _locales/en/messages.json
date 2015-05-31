@@ -1,3 +1,30 @@
 {
-    "name": "jarro_000"
+    "extensionName": {
+        "message": "Images to base64",
+        "description": "A full extension name."
+    },
+    "extensionShortName": {
+        "message": "img2base64",
+        "description": "Short name used in apps listing."
+    },
+    "extensionDescription": {
+        "message": "Replaces all images on the page with base64 dataUrl representation. It helps you pass CORS restrictions while developing a webpage.",
+        "description": "Description visible to the user in apps listing"
+    },
+    "menuImage2Base64": {
+        "message": "Image to base64",
+        "description": "Context menu item: mage to base64"
+    },
+    "menuReplaceOneImage": {
+        "message": "Replace this image",
+        "description": "Context menu item: Replace this image"
+    },
+    "menuReplaceAllImages": {
+        "message": "Replace all images",
+        "description": "Context menu item: Replace all images"
+    },
+    "menuAll2base64": {
+        "message": "All images to base64",
+        "description": "Context menu item: All images to base64"
+    }
 }

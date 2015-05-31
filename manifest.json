@@ -1,12 +1,14 @@
 {
-    "name": "Images to base64",
+    "name": "__MSG_extensionName__",
+    "short_name": "__MSG_extensionShortName__",
+    "description": "__MSG_extensionDescription__",
+    "author": "Pawel Psztyc <jarrodek@gmail.com>",
     "manifest_version": 2,
-    "version": "1.0.2",
-    "description": "Replaces all images on the page with base64 dataUrl representation. It helps you pass CORS restrictions while developing a webpage.",
+    "version": "1.0.1",
     "background": {
         "persistent": false,
         "scripts": [
-            "background.js"
+            "js/background.js"
         ]
     },
     "permissions": [
@@ -14,6 +16,5 @@
         "contextMenus",
         "tabs"
     ],
-    "author": "Pawel Psztyc",
     "default_locale": "en"
 }

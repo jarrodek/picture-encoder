@@ -6,21 +6,21 @@ gdg.dev.img64 = gdg.dev.img64 || {};
 
 gdg.dev.img64.contextOptions = [{
   'id': 'BNaDGmcInC5gUrj6KRVYDwrd79aVW9jl',
-  'title': 'Image to base64',
+  'title': chrome.i18n.getMessage('menuImage2Base64'),
   'contexts': ['image']
 },{
   'id': '0SdQCH04mmtaKajBxBPTcd4y96yDxHQG',
   'parentId': 'BNaDGmcInC5gUrj6KRVYDwrd79aVW9jl',
-  'title': 'Replace this image',
+  'title': chrome.i18n.getMessage('menuReplaceOneImage'),
   'contexts': ['image']
 },{
   'id': 'zrobfeQESkllffSrEuheR8kADqmIPzR8',
   'parentId': 'BNaDGmcInC5gUrj6KRVYDwrd79aVW9jl',
-  'title': 'Replace all images',
+  'title': chrome.i18n.getMessage('menuReplaceAllImages'),
   'contexts': ['image']
 },{
   'id': 'cwNDODJvp0NDSkjgpMz78QwB4GEZpLJH',
-  'title': 'All images to base64',
+  'title': chrome.i18n.getMessage('menuAll2base64'),
   'contexts': ['page']
 }];
 
