@@ -23,7 +23,7 @@ module.exports = function (grunt) {
         },
         clean: {
             js: {
-                src: ["*.zip"]
+                src: ["./<%= pkg.name %>*.zip"]
             }
         }
     });
@@ -32,7 +32,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-clean');
 
-    grunt.registerTask('compress', ['compress']);
+    grunt.registerTask('create-zip', ['compress']);
     grunt.registerTask('js-hint', ['jshint']);
 
     grunt.registerTask('build-extension', ['manifest-version', 'compress']);
@@ -54,5 +54,5 @@ module.exports = function (grunt) {
         grunt.log.writeln('New version updated.');
     });
 
-    grunt.registerTask('clean', ['clean']);
+    grunt.registerTask('remove-zips', ['clean']);
 };
